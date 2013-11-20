@@ -1,0 +1,9 @@
+name: DonateShop
+main: de.team_aedon.e4gle.donateshop.DonateShop
+version: 1.0
+commands:
+    dshop:
+        description: Ruft die DonateShop-Hilfe auf.
+        usage: /dshop
+        permission: dshop.admin
+        permission-message: dir fehlt die <permission> permission
