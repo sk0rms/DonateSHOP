@@ -22,7 +22,7 @@ public class DBConnection {
 	}
 	
 	public void createDefaultTables() throws Exception{
-		List<String> tables = Arrays.asList("CREATE TABLE IF NOT EXISTS Spieler(ID INT PRIMARY KEY AUTO_INCREMENT, Name VARCHAR(25)) ENGINE=InnoDB", "CREATE TABLE IF NOT EXISTS Pakete(ID INT PRIMARY KEY AUTO_INCREMENT, Name VARCHAR(25)) ENGINE=InnoDB", "CREATE TABLE IF NOT EXISTS SpielerPakete(ID INT PRIMARY KEY AUTO_INCREMENT, SpielerID INT, PaketID INT, ExpirationDate BIGINT, FOREIGN KEY(SpielerId) REFERENCES Spieler(ID) ON DELETE CASCADE, FOREIGN KEY(PaketID) REFERENCES Pakete(ID) ON DELETE CASCADE) ENGINE=InnoDB");
+		List<String> tables = Arrays.asList("CREATE TABLE IF NOT EXISTS Spieler(ID INT PRIMARY KEY AUTO_INCREMENT, Name VARCHAR(25), VotePoints INT NOT NULL DEFAULT '0') ENGINE=InnoDB", "CREATE TABLE IF NOT EXISTS Pakete(ID INT PRIMARY KEY AUTO_INCREMENT, Name VARCHAR(25)) ENGINE=InnoDB", "CREATE TABLE IF NOT EXISTS SpielerPakete(ID INT PRIMARY KEY AUTO_INCREMENT, SpielerID INT, PaketID INT, ExpirationDate BIGINT, FOREIGN KEY(SpielerId) REFERENCES Spieler(ID) ON DELETE CASCADE, FOREIGN KEY(PaketID) REFERENCES Pakete(ID) ON DELETE CASCADE) ENGINE=InnoDB");
 		for(String table : tables){
 		this.st.executeUpdate(table);
 		}
@@ -244,5 +244,32 @@ public class DBConnection {
 		}else {
 			return false;
 		}
+	}
+	
+	public boolean playerHasBoughtPakets(String player) throws Exception{
+		String query = "Select sp.ID FROM Spieler s, SpielerPakete sp WHERE s.ID = sp.SpielerID AND s.Name = '"+player+"'";
+		this.rs = this.st.executeQuery(query);
+		if(rs.next()){
+			return true;
+		}else {
+			return false;
+		}
+	}
+	
+	public boolean hasAnUnexpiredPaketOf(String spieler, String paket) throws Exception{
+		String query = "Select sp.ID FROM Spieler s, SpielerPakete sp, Pakete p WHERE s.ID = sp.SpielerID AND p.ID = sp.PaketID AND p.Name = '"+paket+"' AND s.Name = '"+spieler+"'";
+		this.rs = this.st.executeQuery(query);
+		List<Integer> i = new ArrayList<Integer>();
+		while(rs.next()){
+			i.add(rs.getInt(1));
+		}
+		for(int p : i){
+			if(paketExpireable(p)){
+				if(!isPaketExpired(p)){
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }
